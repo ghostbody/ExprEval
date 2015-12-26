@@ -84,14 +84,17 @@ public class OOPTable {
 				return muldiv;
 			case '^':
 				return power;
-
+			case '?':
+				return interrogation;
+			case ':':
+				return colon;
 			default:
 				break;
 			}
 		} else if (t instanceof Logic) {
 			if(((Logic) t).value == ">" || ((Logic) t).value  == "<"
 					|| ((Logic) t).value  == "=" || ((Logic) t).value == ">="
-					|| ((Logic) t).value  == "<=" || ((Logic) t).value  == "!=") {
+					|| ((Logic) t).value  == "<=" || ((Logic) t).value  == "<>") {
 				return cmp;
 			} else if (((Logic) t).value == "!") {
 				return not;
@@ -99,10 +102,6 @@ public class OOPTable {
 				return and;
 			} else if(((Logic) t).value == "|") {
 				return or;
-			} else if (((Logic) t).value == "?") {
-				return  interrogation;
-			} else if (((Logic) t).value == ":") {
-				return colon;
 			}
 			//
 		} else if (t instanceof Decimal) {

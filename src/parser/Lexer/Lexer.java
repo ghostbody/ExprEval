@@ -3,20 +3,28 @@ package parser.Lexer;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 
+import exceptions.EmptyExpressionException;
+import exceptions.IllegalDecimalException;
+import exceptions.IllegalIdentifierException;
+import exceptions.LexicalException;
+
 
 public class Lexer {
 	private String inputString;
 	private int lookahead = 0;
 	private ArrayList<Token> tokenList;
 	
-	public Lexer(String inputString) {
+	public Lexer(String inputString) throws EmptyExpressionException {
 		this.inputString = inputString;
 		this.tokenList = new ArrayList<Token>();
 		preProcess();
 	}
 	
-	private void preProcess() {
+	private void preProcess() throws EmptyExpressionException {
 		this.inputString = this.inputString.replace(" ", "");
+		if(inputString == "") {
+			throw new EmptyExpressionException();
+		}
 		this.inputString += "#";
 		System.out.println(inputString);
 	}
@@ -25,20 +33,28 @@ public class Lexer {
 		return this.tokenList;
 	}
 	
-	public void scanner() {	
+	public void scanner() throws IllegalDecimalException, LexicalException {	
 		while(lookahead < inputString.length() -1) {
 			this.getNextToken();
 		}
 		this.tokenList.add(new Dolla());
 	}
 	
-	public Token getNextToken() {
-		Token t = scan();
-		this.tokenList.add(t);
-		return t;
+	public Token getNextToken() throws IllegalDecimalException, LexicalException {
+		try {
+			Token t = scan();
+			this.tokenList.add(t);
+			return t;
+		} catch (Exception e) {
+			System.err.println(e.toString());
+			System.exit(1);
+		}
+		return null;
 	}
 	
-	private Token scan() {
+	private Token scan() throws LexicalException, 
+								IllegalDecimalException,
+								IllegalIdentifierException{
 		char temp = inputString.charAt(lookahead);
 		if(match(temp, Tag.BOOLEAN)) {
 			if(matchBool_true()) {
@@ -48,6 +64,7 @@ public class Lexer {
 			if(matchBool_false()) {
 				return new Boolean(false);
 			}
+			throw new LexicalException();
 		} else if (match(temp, Tag.OPERATOR)) {
 			lookahead++;
 			switch (temp) {
@@ -70,6 +87,7 @@ public class Lexer {
 				case '?': return new Operator('?', 3);
 				case ':': return new Operator(':', 3);
 			}
+			throw new LexicalException();
 		} else if (match(temp, Tag.FUNCTION)) {
 			if(matchFunction_cos()) {
 				return new Function("cos");
@@ -84,12 +102,14 @@ public class Lexer {
 			if(matchFunction_min()) {
 				return new Function("min");
 			}
+			throw new LexicalException();
 		} else if (match(temp, Tag.BRACKET)) {
 			lookahead++;
 			switch (temp) {
 				case '(': return new Bracket('(');
 				case ')': return new Bracket(')');
 			}
+			throw new LexicalException();
 		} else if (match(temp, Tag.LOGIC)) {
 			lookahead++;
 			switch (temp) {
@@ -112,20 +132,26 @@ public class Lexer {
 					return new Logic("=", 2);
 				case '&':
 					return new Logic("&", 2);
+				case '|':
+					return new Logic("|", 2);
 				case '!':
 					return new Logic("!", 1);
 			}
+			throw new LexicalException();
 		} else if (match(temp, Tag.DECIMAL)) {
 			int posStart = lookahead;
 			if(matchDecimal_decimal()) {
 				String num = inputString.substring(posStart, lookahead);
 				return new Decimal(new BigDecimal(num).doubleValue());
+			} else {
+				throw new IllegalDecimalException();
 			}
 		} else if (match(temp, Tag.COMMA)) {
+			lookahead++;
 			return new Comma();
 		}
 		
-		return null;
+		throw new IllegalIdentifierException();
 	}
 	
 	private boolean isOperator(char sign) {
@@ -149,7 +175,7 @@ public class Lexer {
 		} else if (element == '(' || element == ')') {
 			return tag == Tag.BRACKET;
 		} else if (element == '>' || element == '<' || element == '=' 
-				|| element == '&' || element == '!') {
+				|| element == '&' || element == '|' || element == '!') {
 			return tag == Tag.LOGIC;
 		} else if (element == ',') {
 			return tag == Tag.COMMA;

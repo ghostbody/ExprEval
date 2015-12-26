@@ -9,7 +9,6 @@ import parser.Lexer.Boolean;
 import parser.Lexer.Decimal;
 import parser.Lexer.Token;
 import parser.analyzer.Analyzer;
-
 /**
  * Main program of the expression based calculator ExprEval
  * 
