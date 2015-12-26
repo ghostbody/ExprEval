@@ -1,14 +1,60 @@
 import static org.junit.Assert.*;
 import org.junit.Test;
+
+import com.sun.org.apache.xml.internal.security.keys.keyresolver.implementations.PrivateKeyResolver;
+
+import exceptions.DividedByZeroException;
+import exceptions.IllegalDecimalException;
 import exceptions.MissingLeftParenthesisException;
+import exceptions.MissingOperandException;
+import exceptions.MissingOperatorException;
+import exceptions.MissingRightParenthesisException;
+import exceptions.TypeMismatchedException;
 import parser.Calculator;
 
 
 public class ExprEvalTest {
 	
+	private Calculator c = new Calculator();
+	private final double acurancy = 0.00001;
+	
 	@Test
-	public void test() throws Exception {
-		Calculator c = new Calculator();
+	public void test1() throws Exception {
+		try {
+			c.calculate("(2 + 3) ^ 3) - ((1 + 1)");
+		} catch (Exception e) {
+			assertTrue(e instanceof MissingLeftParenthesisException);
+		}
+	}
+	
+	@Test
+	public void test2() throws Exception {
+		assertTrue(Math.abs(c.calculate("9 - 3 * 2") - 3) <= acurancy);
+	}
+	
+	@Test
+	public void test3() throws Exception {
+		assertTrue(Math.abs(c.calculate("2.25E+2 - (55.5 + 4 * (10 / 2) ^ 2)") - 69.5) <= acurancy);
+	}
+	
+	@Test
+	public void test4() throws Exception {
+		assertTrue(Math.abs(c.calculate("65 / 5 - 130e-1")) <= acurancy);
+	}
+	
+	
+	@Test
+	public void test5() throws Exception {
+		assertTrue(Math.abs(c.calculate("(5 > 3) & (4 < 8) ? 15 : 16") - 15) <= acurancy);
+	}
+	
+	@Test
+	public void test6() throws Exception {
+		assertTrue(Math.abs(c.calculate("max(1,2) + sin(1)^2 + cos(min(1,2))^2") - 3) <= acurancy);
+	}
+	
+	@Test
+	public void test7() throws Exception {
 		try {
 			c.calculate("(2 + 3) ^ 3) - ((1 + 1)");
 		} catch (Exception e) {
@@ -16,4 +62,40 @@ public class ExprEvalTest {
 		}
 	}
 
+	@Test
+	public void test9() throws Exception {
+		try {
+			c.calculate("(1 + 2) ^ (3 - 4) 5");
+		} catch (Exception e) {
+			assertTrue(e instanceof MissingOperatorException);
+		}
+	}
+	
+	@Test
+	public void test10() throws Exception {
+		try {
+			c.calculate("(1 + 2) ^ (3 - ) + 5");
+		} catch (Exception e) {
+			assertTrue(e instanceof MissingOperandException);
+		}
+	}
+	
+	@Test
+	public void test11() throws Exception {
+		try {
+			c.calculate("4 / (12 - 3 * 4) + 1");
+		} catch (Exception e) {
+			assertTrue(e instanceof DividedByZeroException);
+		}
+	}
+	
+	@Test
+	public void test12() throws Exception {
+		try {
+			c.calculate("(13 < 2 * 5) + 12");
+		} catch (Exception e) {
+			assertTrue(e instanceof TypeMismatchedException);
+		}
+	}
+	
 }
